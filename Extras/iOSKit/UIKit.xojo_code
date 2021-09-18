@@ -1,0 +1,95 @@
+#tag Module
+Protected Module UIKit
+	#tag Method, Flags = &h0
+		Function BuildTargetClass(superClassName as Text, newClassName as Text, methods() as UIKit.TargetClassMethodHelper) As ptr
+		  declare function objc_allocateClassPair  lib "/usr/lib/libobjc.A.dylib" (superclass as Ptr, name as CString, extraBytes as Integer) as Ptr
+		  declare sub        objc_registerClassPair  lib "/usr/lib/libobjc.A.dylib" (cls as Ptr)
+		  declare function class_addMethod         lib "/usr/lib/libobjc.A.dylib" (cls as Ptr, name as Ptr, imp as Ptr, types as CString) as Boolean
+		  'declare function method_getTypeEncoding lib "/usr/lib/libobjc.A.dylib" (method as ptr) as CString
+		  
+		  using Xojo.Core
+		  static cache as xojo.core.Dictionary
+		  if cache = nil then cache = new Dictionary
+		  
+		  if cache.HasKey(newClassName) then Return cache.Value(newClassName)
+		  
+		  dim result as Ptr
+		  result = objc_allocateClassPair(NSClassFromString(superClassName), newClassName.ToCString(Xojo.Core.TextEncoding.UTF8), 0)
+		  
+		  for i as Integer = 0 to methods.LastIndex
+		    if not class_addMethod(result,NSSelectorFromString(methods(i).selName), methods(i).impl, methods(i).charCode.ToCString(Xojo.Core.TextEncoding.UTF8)) then Break
+		  next
+		  
+		  objc_registerClassPair(result)
+		  
+		  cache.Value(newClassName) = result
+		  Return result
+		End Function
+	#tag EndMethod
+
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Sub UIAlertActionCompletionHandler(sender as UIAlertAction)
+	#tag EndDelegateDeclaration
+
+
+	#tag ComputedProperty, Flags = &h1
+		#tag Getter
+			Get
+			  //new jly
+			  declare function reduceTransparency lib UIKitLib alias "UIAccessibilityIsReduceTransparencyEnabled"  as Boolean
+			  
+			  return reduceTransparency
+			End Get
+		#tag EndGetter
+		Protected UIAccessibilityIsReduceTransparencyEnabled As Boolean
+	#tag EndComputedProperty
+
+
+	#tag Constant, Name = UIKitLib, Type = Text, Dynamic = False, Default = \"UIKit.framework", Scope = Public
+	#tag EndConstant
+
+
+	#tag ViewBehavior
+		#tag ViewProperty
+			Name="Index"
+			Visible=true
+			Group="ID"
+			InitialValue="-2147483648"
+			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Left"
+			Visible=true
+			Group="Position"
+			InitialValue="0"
+			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Name"
+			Visible=true
+			Group="ID"
+			InitialValue=""
+			Type="String"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Super"
+			Visible=true
+			Group="ID"
+			InitialValue=""
+			Type="String"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Top"
+			Visible=true
+			Group="Position"
+			InitialValue="0"
+			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+	#tag EndViewBehavior
+End Module
+#tag EndModule
